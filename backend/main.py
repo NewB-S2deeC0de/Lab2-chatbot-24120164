@@ -6,6 +6,9 @@ app = FastAPI()
 
 @app.post("/api/chat")
 def chat(request: ChatRequest): 
-	reply = get_ai_result(request.message)
-	return {"bot reply": reply}
+    history_dict = [{"role": msg.role, "content": msg.content} for msg in request.messages]
+    
+    reply = get_ai_result(history_dict)
+    
+    return {"bot reply": reply}
 
