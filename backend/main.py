@@ -14,5 +14,5 @@ def chat(request: ChatRequest):
     
     save_message(request.session_id, "assitant", reply)
     
-    return {"bot reply": reply}
+    return {"bot_reply": reply}
 
