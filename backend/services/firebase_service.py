@@ -12,13 +12,13 @@ def save_message(session_id:str, role: str, content: str):
 	}
 
 	# collection 'chats' -> documentation 'session_id' -> collection 'messages'
-	db.collection("chats").documentation(session_id).collection("messages").add(doc)
+	db.collection("chats").document(session_id).collection("messages").add(doc)
 
 def load_chat_history(session_id, limit: int = 10) -> list:
 	"""Load chat history, order by timestamp"""
 	query = (
 		db.collection("chats")
-		.documentation(session_id)
+		.document(session_id)
 		.collection("messages")
 		.order_by("timestamp")
 		.limit(limit)
