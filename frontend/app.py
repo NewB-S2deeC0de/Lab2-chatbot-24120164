@@ -12,6 +12,17 @@ if "session_id" not in st.session_state:
 if "messages" not in st.session_state:
 	st.session_state.messages = []
 
+	try:
+		url = f"{SERVER_URL}/history/{st.session_state.session_id}?limit=50"
+		response = requests.get(url)
+
+		if response.status_code == 200:
+			db_history = response.json().get("history", [])
+			st.session_state.messages = db_history
+
+	except Exception as e:
+		st.error(f"Lỗi khi tải lịch sử: {str(e)}")
+
 # Reder chat history per web reload 
 for msg in st.session_state.messages:
 	with st.chat_message(msg["role"]):
