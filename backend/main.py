@@ -1,4 +1,6 @@
+import uvicorn
 from fastapi import FastAPI
+from fastapi import HTTPException
 from backend.schemas.chat import ChatRequest
 from backend.services.ai_service import get_ai_result
 from backend.services.firebase_service import save_message, load_chat_history
@@ -16,3 +18,13 @@ def chat(request: ChatRequest):
     
     return {"bot_reply": reply}
 
+@app.get("/api/chat/history/{session_id}")
+def get_chat_history(session_id: str): 
+	try:
+		history = load_chat_history(session_id)
+		return {"history": history}
+	except Exception as e: 
+		raise HTTPException(status_code=500, detail=f"Lỗi khi tải lịch sử: {str(e)}")
+
+if __name__ == "__main__": 
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
