@@ -1,5 +1,8 @@
 import streamlit as st
 import requests
+
+import uuid
+
 from auth import register_with_email, login_with_email
 
 SERVER_URL = "http://localhost:8000/api/chat"
@@ -16,7 +19,7 @@ if "id_token" not in st.session_state:
             if "idToken" in res:
                 st.session_state.id_token = res["idToken"]
                 st.session_state.uid = res["localId"]
-                st.session_state.session_id = res["localId"]
+                st.session_state.session_id = str(uuid.uuid4())
 
                 sync_url = SERVER_URL.replace("/chat", "/auth/login")
                 headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
@@ -47,14 +50,20 @@ if "id_token" not in st.session_state:
     st.stop()
 
 st.sidebar.write(f"Login with ID: {st.session_state.uid}")
+
+def start_new_chat():
+	st.session_state.session_id = str(uuid.uuid4())
+	st.session_state.messages = []
+
+st.sidebar.button("➕ Create new chat", on_click=start_new_chat, use_container_width=True)
+
 st.sidebar.button("Log Out", on_click=lambda: st.session_state.clear())
- 
 
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
 st.title("🤖 Chatbot AI")
 
 if "session_id" not in st.session_state: 
-	st.session_state.session_id = "test_user_streamlit_01"
+	st.session_state.session_id = str(uuid.uuid4())
 
 if "messages" not in st.session_state:
 	st.session_state.messages = []

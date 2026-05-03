@@ -1,5 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends
+from firebase_admin import firestore
+
 from backend.schemas.chat import ChatRequest
 from backend.services.ai_service import get_ai_result
 from backend.services.firebase_service import save_message, load_chat_history
@@ -24,9 +26,9 @@ def sync_user(user_data: dict = Depends(get_current_user)):
 
 	if not user_doc.exists:
 		user_ref.set({
-			"uid": uid,
 			"email": email,
-			"role": "user"
+			"role": "user",
+			"created_at": firestore.SERVER_TIMESTAMP
 		})
 		return {"message": "Initialize user doc successfully", "uid": uid}
 
@@ -49,7 +51,9 @@ def get_user_profile(user_data: dict = Depends(get_current_user)):
 
 @app.post("/api/chat")
 def chat(request: ChatRequest, user_data: dict = Depends(get_current_user)):
-    save_message(request.session_id, "user", request.message)
+    uid = user_data.get("uid")
+    
+    save_message(request.session_id, "user", request.message, uid=uid)
 
     history_dict = load_chat_history(request.session_id, limit=21)
 
