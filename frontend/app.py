@@ -6,7 +6,7 @@ SERVER_URL = "http://localhost:8000/api/chat"
 
 if "id_token" not in st.session_state:
     st.title("Login to AI Chatbot")
-    
+
     tab1, tab2 = st.tabs(["Login", "Register"])
     with tab1:
         email_login = st.text_input("Email", key="login_email")
@@ -17,9 +17,21 @@ if "id_token" not in st.session_state:
                 st.session_state.id_token = res["idToken"]
                 st.session_state.uid = res["localId"]
                 st.session_state.session_id = res["localId"]
+
+                sync_url = SERVER_URL.replace("/chat", "/auth/login")
+                headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
+
+                with st.spinner("Synchronize user profile..."):
+                    try:
+                        response = requests.post(sync_url, headers=headers)
+                            
+                    except Exception as e:
+                        st.error(f"Failed to synchronize: {str(e)}")
+                        st.stop
+
                 st.success("Login Successfully!")
                 st.rerun()
-                
+
             else:
                 st.error(f"Error: {res.get('error', {}).get('message', 'Wrong Information')}")
     with tab2:
@@ -31,9 +43,9 @@ if "id_token" not in st.session_state:
                 st.success("Register successfully! Please move to Login.")
             else:
             	st.error(f"Error: {res.get('error', {}).get('message', 'Request was denied')}")
-    
+
     st.stop()
-        
+
 st.sidebar.write(f"Login with ID: {st.session_state.uid}")
 st.sidebar.button("Log Out", on_click=lambda: st.session_state.clear())
  
@@ -49,11 +61,17 @@ if "messages" not in st.session_state:
 
 	try:
 		url = f"{SERVER_URL}/history/{st.session_state.session_id}?limit=50"
-		response = requests.get(url)
+
+		headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
+
+		response = requests.get(url, headers=headers)
 
 		if response.status_code == 200:
 			db_history = response.json().get("history", [])
 			st.session_state.messages = db_history
+
+		else:
+			st.error(f"Backend Error: {response.text}")
 
 	except Exception as e:
 		st.error(f"Lỗi khi tải lịch sử: {str(e)}")
@@ -80,7 +98,9 @@ if prompt := st.chat_input("Chia sẻ vấn đề của bạn ở đây"):
 				"message": prompt
 			}
 
-			response = requests.post(SERVER_URL, json=payload)
+			headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
+
+			response = requests.post(SERVER_URL, json=payload, headers=headers)
 
 			if response.status_code == 200:
 				bot_reply = response.json().get("bot_reply")
