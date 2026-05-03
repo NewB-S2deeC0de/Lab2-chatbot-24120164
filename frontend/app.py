@@ -1,7 +1,42 @@
 import streamlit as st
 import requests
+from auth import register_with_email, login_with_email
 
 SERVER_URL = "http://localhost:8000/api/chat"
+
+if "id_token" not in st.session_state:
+    st.title("Login to AI Chatbot")
+    
+    tab1, tab2 = st.tabs(["Login", "Register"])
+    with tab1:
+        email_login = st.text_input("Email", key="login_email")
+        pass_login = st.text_input("Password", type="password", key="login_pass")
+        if st.button("Login", type="primary"):
+            res = login_with_email(email_login, pass_login)
+            if "idToken" in res:
+                st.session_state.id_token = res["idToken"]
+                st.session_state.uid = res["localId"]
+                st.session_state.session_id = res["localId"]
+                st.success("Login Successfully!")
+                st.rerun()
+                
+            else:
+                st.error(f"Error: {res.get('error', {}).get('message', 'Wrong Information')}")
+    with tab2:
+        email_reg = st.text_input("Email", key="reg_email")
+        pass_reg = st.text_input("Email (At least six charaters)", type="password", key="reg_pass")
+        if st.button("Register", type="primary"):
+            res = register_with_email(email_reg, pass_reg)
+            if "idToken" in res:
+                st.success("Register successfully! Please move to Login.")
+            else:
+            	st.error(f"Error: {res.get('error', {}).get('message', 'Request was denied')}")
+    
+    st.stop()
+        
+st.sidebar.write(f"Login with ID: {st.session_state.uid}")
+st.sidebar.button("Log Out", on_click=lambda: st.session_state.clear())
+ 
 
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
 st.title("🤖 Chatbot AI")
