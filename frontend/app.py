@@ -46,10 +46,30 @@ if "id_token" not in st.session_state:
                 st.success("Register successfully! Please move to Login.")
             else:
             	st.error(f"Error: {res.get('error', {}).get('message', 'Request was denied')}")
+             
+        st.stop()
 
-    st.stop()
+if "user_profile" not in st.session_state:
+    me_url = SERVER_URL.replace("/chat", "/auth/me")
+    headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
+    try:
+        res = requests.post(me_url, headers=headers)
+        if res.status_code == 200:            
+            st.session_state.user_profile = res.json()
+            
+            
+        else:
+            st.session_state.user_profile = {"email": "N/A", "role": "N/A"}
+            
+    except Exception as e:
+        st.session_state.user_profile = {"email": "error", "role": "error"}
+        st.error(f"Error while load user profile: {str(e)}")
+		
+user_email = st.session_state.user_profile.get("email") or "NONE"
+user_role = st.session_state.user_profile.get("role") or "user"
 
-st.sidebar.write(f"ID: {st.session_state.uid[:8]}...")
+st.sidebar.markdown(f"### 👤 {user_email}")
+st.sidebar.caption(f"Role: {user_role.upper()} | ID: {st.session_state.uid[:8]}...")
 
 def start_new_chat():
 	st.session_state.session_id = str(uuid.uuid4())
