@@ -34,7 +34,7 @@ def sync_user(user_data: dict = Depends(get_current_user)):
 
 	return {"message": "Synchonize successfully!", "uid": uid}
 
-@app.post("api/auth/me")
+@app.post("/api/auth/me")
 def get_user_profile(user_data: dict = Depends(get_current_user)):
 	"""
 	Get user information while signing in
@@ -42,9 +42,9 @@ def get_user_profile(user_data: dict = Depends(get_current_user)):
 
 	db = get_db()
 	uid = user_data.get("uid")
-	user_doc = db.collecion("users").document(uid).get()
+	user_doc = db.collection("user").document(uid).get()
 
-	if user_docs.exists:
+	if user_doc.exists:
 		return user_doc.to_dict()
 
 	return {"uid": uid, "email": user_data.get("email"), "message": "Profile has not been initialized"}
