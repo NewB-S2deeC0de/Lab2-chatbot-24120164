@@ -27,7 +27,7 @@ if "id_token" not in st.session_state:
                 with st.spinner("Synchronize user profile..."):
                     try:
                         response = requests.post(sync_url, headers=headers)
-                            
+
                     except Exception as e:
                         st.error(f"Failed to synchronize: {str(e)}")
                         st.stop
@@ -49,14 +49,50 @@ if "id_token" not in st.session_state:
 
     st.stop()
 
-st.sidebar.write(f"Login with ID: {st.session_state.uid}")
+st.sidebar.write(f"ID: {st.session_state.uid[:8]}...")
 
 def start_new_chat():
 	st.session_state.session_id = str(uuid.uuid4())
 	st.session_state.messages = []
 
+def switch_chat(selected_session_id):
+	st.session_state.session_id = selected_session_id
+	
+	if "messages" in st.session_state:
+		del st.session_state["messages"]	
+	
+
+st.sidebar.divider()
+st.sidebar.write("History")
 st.sidebar.button("➕ Create new chat", on_click=start_new_chat, use_container_width=True)
 
+# Call API get User session_id list
+sessions_url = SERVER_URL.replace("/chat", "/chat/sessions")
+headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
+
+try:
+	res = requests.get(sessions_url, headers=headers)
+	if res.status_code == 200:
+		sessions = res.json().get("sessions", [])
+
+		for s_id in sessions:
+			short_id = s_id[:8]
+
+			btn_type = "primary" if s_id == st.session_state.session_id else "secondary"
+
+			st.sidebar.button(
+				f"💬 Chat {short_id}...",
+				key=f"btn_{s_id}",	# unique
+				on_click=switch_chat,
+				args=(s_id,),
+				use_container_width=True,
+				type=btn_type
+			)
+
+except Exception as e:
+	st.sidebar.error("Failed to load chat history")
+
+st.sidebar.divider()
 st.sidebar.button("Log Out", on_click=lambda: st.session_state.clear())
 
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
