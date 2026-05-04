@@ -110,7 +110,7 @@ try:
 			)
 
 except Exception as e:
-	st.sidebar.error("Failed to load chat history")
+	st.sidebar.error("Load Error: Failed")
 
 st.sidebar.divider()
 st.sidebar.button("Log Out", on_click=lambda: st.session_state.clear())
@@ -139,7 +139,7 @@ if "messages" not in st.session_state:
 			st.error(f"Backend Error: {response.text}")
 
 	except Exception as e:
-		st.error(f"Lỗi khi tải lịch sử: {str(e)}")
+		st.error(f"Load Error: {str(e)}")
 
 # Reder chat history per web reload 
 for msg in st.session_state.messages:
@@ -147,7 +147,7 @@ for msg in st.session_state.messages:
 		st.markdown(msg["content"])
 
 # Chat input box
-if prompt := st.chat_input("Chia sẻ vấn đề của bạn ở đây"):
+if prompt := st.chat_input("Ask me something..."):
 	# Render chat history
 	with st.chat_message("user"):
 		st.markdown(prompt)
@@ -156,7 +156,7 @@ if prompt := st.chat_input("Chia sẻ vấn đề của bạn ở đây"):
 	st.session_state.messages.append({"role": "user", "content": prompt})
 
 	# Send request to Backend API
-	with st.spinner("AI đang đặt mình vào vị trí của bạn..."):
+	with st.spinner("Braining..."):
 		try: 
 			payload = {
 				"session_id": st.session_state.session_id, 
@@ -170,10 +170,10 @@ if prompt := st.chat_input("Chia sẻ vấn đề của bạn ở đây"):
 			if response.status_code == 200:
 				bot_reply = response.json().get("bot_reply")
 			else:
-				bot_reply = f"Lỗi Backend {response.text}"
+				bot_reply = f"Error Backend {response.text}"
 
 		except Exception as e:
-			bot_reply = f"Lỗi kết nối: Không thể gọi tới FastAPI {e}"
+			bot_reply = f"Connection Error: Can not call FastAPI {e}"
 
 	# Render bot_reply
 		with st.chat_message("assistant"):
