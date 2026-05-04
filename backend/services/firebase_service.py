@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from firebase_admin import firestore
+from google.cloud.firestore import FieldFilter
+
 from backend.firebase_config import  get_db
 
 db = get_db()
@@ -53,3 +55,17 @@ def load_chat_history(session_id: str, limit: int = 20) -> list:
 
 	return history
 
+def get_user_sessions(uid: str) -> list:
+	"""
+	Get User session_id list
+	"""
+
+	chat_ref = db.collection("chats")
+	query = chat_ref.where(filter=FieldFilter("uid", "==", uid))
+	docs = query.stream()
+
+	sessions = []
+	for doc in docs:
+		sessions.append(doc.id)
+
+	return sessions

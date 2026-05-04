@@ -4,7 +4,7 @@ from firebase_admin import firestore
 
 from backend.schemas.chat import ChatRequest
 from backend.services.ai_service import get_ai_result
-from backend.services.firebase_service import save_message, load_chat_history
+from backend.services.firebase_service import save_message, load_chat_history, get_user_sessions
 
 from backend.firebase_config import get_db
 from backend.dependencies.auth import get_current_user
@@ -48,6 +48,19 @@ def get_user_profile(user_data: dict = Depends(get_current_user)):
 		return user_doc.to_dict()
 
 	return {"uid": uid, "email": user_data.get("email"), "message": "Profile has not been initialized"}
+
+@app.get("/api/chat/sessions")
+def get_sessions(user_data: dict = Depends(get_current_user)):
+	"""
+	Return User session_id list
+	"""
+
+	uid = user_data.get("uid")
+	try:
+		sessions = get_user_sessions(uid)
+		return {"sessions": sessions}
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Session load error: {str(e)}")
 
 @app.post("/api/chat")
 def chat(request: ChatRequest, user_data: dict = Depends(get_current_user)):
