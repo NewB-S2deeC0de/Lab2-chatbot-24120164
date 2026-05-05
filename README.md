@@ -1,3 +1,5 @@
+
+
 # Chatbot - 24120164
 
 Hệ thống chatbot sử dụng mô hình llama3.2:1b, với logic Backend được xây dựng bằng FastAPI, giao diện Frontend được xây dựng bằng streamlit
@@ -34,3 +36,4 @@ uvicorn backend.main:app --reload
 ```
 
 ## 🎬 Video demo
+https://youtu.be/fOe2dQaQ6sk
