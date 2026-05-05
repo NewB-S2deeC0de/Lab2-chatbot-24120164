@@ -1,8 +1,9 @@
+import os
 import uvicorn
 import streamlit as st
 
 from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from firebase_admin import firestore
 
 from backend.schemas.chat import ChatRequest
@@ -28,6 +29,7 @@ def google_login_ui():
     <head>
         <title>Google Validation</title>
         <meta charset="utf-8">
+        <link rel="icon" href="/favicon.ico" type="image/x-icon">
     </head>
     <body style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; background-color: #f0f2f5;">
 		<div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;">
@@ -173,6 +175,12 @@ def get_chat_history(session_id: str, limit_messages: int = 50, user_data: dict 
 		return {"history": history}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Lỗi khi tải lịch sử: {str(e)}")
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    favicon_path = os.path.join(current_dir, "favicon.ico")
+    return FileResponse(favicon_path)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
