@@ -188,12 +188,28 @@ with st.sidebar:
             sessions = res.json().get("sessions", [])
             
             for s_id in sessions:
-                short_id = s_id[:8]
+                try:
+                    history_url = f"{SERVER_URL}/history/{s_id}?limit=1"
+                    h_res = requests.get(history_url, headers=headers)
+                    if h_res.status_code == 200:
+                        history = h_res.json().get("history", [])
+                        if history:
+                            first_msg = history[0].get("content", "")
+                            display_name = (first_msg[:15] + '...') if len(first_msg) > 15 else first_msg
+                    
+                        else:
+                            display_name = f"Chat: {s_id[:5]}"
+                    
+                    else: 
+                        display_name = f"Chat: {s_id[:5]}"
+                    
+                except: 
+                    display_name = f"Chat: {s_id[:5]}"
                 
                 btn_type = "primary" if s_id == st.session_state.session_id else "secondary"
                 
                 st.sidebar.button(
-                    f"💬 Chat {short_id}...",
+                    f"💬 {display_name}...",
                     key=f"btn_{s_id}",	# unique
                     on_click=switch_chat,
                     args=(s_id,),

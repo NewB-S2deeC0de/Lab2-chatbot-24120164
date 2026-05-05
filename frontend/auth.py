@@ -15,6 +15,4 @@ def login_with_email(email: str, password: str):
 	url = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}"
 	payload = {"email": email, "password": password, "returnSecureToken": True}
 	response = requests.post(url, json=payload)
-	print(f"Mã trạng thái HTTP: {response.status_code}")
-	print(f"Google trả về chính xác là: {response.text}")
 	return response.json()
