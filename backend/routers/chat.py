@@ -6,7 +6,7 @@ from backend.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
-@router.get("")
+@router.post("")
 def chat(request: ChatRequest, user_data: dict = Depends(get_current_user)):
     uid = user_data.get("uid")
     
