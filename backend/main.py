@@ -112,17 +112,31 @@ def sync_user(user_data: dict = Depends(get_current_user)):
 	db = get_db()
 	uid = user_data.get("uid")
 	email = user_data.get("email")
-
+	username = user_data.get("name",  email.split('@')[0])
+	avatar_url = user_data.get("picture", "")
+	provider = user_data.get("firebase", {}).get("sign_in_provider", "email")
+ 
 	user_ref = db.collection("user").document(uid)
 	user_doc = user_ref.get()
 
+	user_info = {
+		"email": email, 
+		"username": username,
+		"avatar_url": avatar_url, 
+		"provider": provider, 
+		"last_login_at": firestore.SERVER_TIMESTAMP,
+		"role": "user"
+	}
 	if not user_doc.exists:
-		user_ref.set({
-			"email": email,
-			"role": "user",
-			"created_at": firestore.SERVER_TIMESTAMP
-		})
+		user_info["created_at"] = firestore.SERVER_TIMESTAMP
+		user_ref.set(user_info)
 		return {"message": "Initialize user doc successfully", "uid": uid}
+	else:
+		user_ref.update({
+			"username": username,
+			"avatar_url": avatar_url,
+			"last_login_at": firestore.SERVER_TIMESTAMP
+		})
 
 	return {"message": "Synchonize successfully!", "uid": uid}
 
