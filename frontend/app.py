@@ -6,7 +6,7 @@ import uuid
 
 from auth import register_with_email, login_with_email
 
-SERVER_URL = "http://localhost:8000/api/chat"
+SERVER_URL = "http://localhost:8000/chat"
 
 # 1. BARRIER: CATCH TOKEN FROM GOOGLE
 if "id_token" in st.query_params and "uid" in st.query_params:
@@ -69,6 +69,7 @@ if "id_token" not in st.session_state:
         st.divider()
         st.markdown("<p style='text-align: center; color: gray;'>OR</p>", unsafe_allow_html=True)
         
+        # Draw Google Button
         google_btn_html = """
         <a href="http://localhost:8000/auth/google/ui" target="_self" style="
             text-decoration: none; width: 100%; padding: 8px 16px;

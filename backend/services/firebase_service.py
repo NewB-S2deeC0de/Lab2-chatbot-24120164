@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from firebase_admin import firestore
 from google.cloud.firestore import FieldFilter
 
-from backend.firebase_config import  get_db
+from backend.core.firebase_config import  get_db
 
 db = get_db()
 
