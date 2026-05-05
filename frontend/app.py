@@ -110,7 +110,6 @@ if "user_profile" not in st.session_state:
         if res.status_code == 200:            
             st.session_state.user_profile = res.json()
             
-            
         else:
             st.session_state.user_profile = {"email": "N/A", "role": "N/A"}
             
@@ -118,57 +117,95 @@ if "user_profile" not in st.session_state:
         st.session_state.user_profile = {"email": "error", "role": "error"}
         st.error(f"Error while load user profile: {str(e)}")
         
-user_email = st.session_state.user_profile.get("email") or "NONE"
-user_role = st.session_state.user_profile.get("role") or "user"
+
 
 # 5. SIDEBAR DISPLAY
-st.sidebar.markdown(f"### 👤 {user_email}")
-st.sidebar.caption(f"Role: {user_role.upper()} | ID: {st.session_state.uid[:8]}...")
-
-# Function for user chat multi-session
-def start_new_chat():
-    st.session_state.session_id = str(uuid.uuid4())
-    st.session_state.messages = []
-
-def switch_chat(selected_session_id):
-    st.session_state.session_id = selected_session_id
+st.markdown("""
+            <style>
+            .user-avatar {
+                display: block; 
+                margin-left: auto;
+                margin-right: auto;
+                border-radius: 50%;
+                border: 2px solid #4285F4;
+                object-fit: cover;
+            }
+            .user-info {
+                text-align: center;
+                padding-top: 10px;
+            }
+            </style>
+""", unsafe_allow_html=True)
+with st.sidebar:
+    profile = st.session_state.get("user_profile", {})
+    user_username = profile.get("username", "Guest")
+    user_email = profile.get("email") or "NONE"
+    user_role = profile.get("role") or "user"
+    user_avatar = profile.get("avatar_url") or "https://www.w3schools.com/howto/img_avatar.png"
     
-    if "messages" in st.session_state:
-        del st.session_state["messages"]	
+    st.markdown(f'<img src="{user_avatar}" class="user-avatar" width="80">', unsafe_allow_html=True)
     
-
-st.sidebar.divider()
-st.sidebar.write("History")
-st.sidebar.button("➕ Create new chat", on_click=start_new_chat, use_container_width=True)
-
-# Call API get User session_id list
-sessions_url = SERVER_URL.replace("/chat", "/chat/sessions")
-headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
-
-try:
-    res = requests.get(sessions_url, headers=headers)
-    if res.status_code == 200:
-        sessions = res.json().get("sessions", [])
-
-        for s_id in sessions:
-            short_id = s_id[:8]
-
-            btn_type = "primary" if s_id == st.session_state.session_id else "secondary"
-
-            st.sidebar.button(
-                f"💬 Chat {short_id}...",
-                key=f"btn_{s_id}",	# unique
-                on_click=switch_chat,
-                args=(s_id,),
-                use_container_width=True,
-                type=btn_type
-            )
-
-except Exception as e:
-    st.sidebar.error("Load Error: Failed")
-
-st.sidebar.divider()
-st.sidebar.button("Log Out", on_click=lambda: st.session_state.clear())
+    st.markdown(f"""
+        <div class="user-info">
+            <h3 style="margin-bottom: 0;">{user_username}</h3>
+            <p style="color: gray; font-size: 0.9em;">{user_email}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    role_color = "#FF4B4B" if user_role.lower() == "admin" else "#00C781"
+    st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 20px;">
+            <span style="background-color: {role_color}; color: white; padding: 2px 10px; border-radius: 10px; font-size: 0.8em; font-weight: bold;">
+                {user_role.upper()}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    # Function for user chat multi-session
+    def start_new_chat():
+        st.session_state.session_id = str(uuid.uuid4())
+        st.session_state.messages = []
+    
+    def switch_chat(selected_session_id):
+        st.session_state.session_id = selected_session_id
+        
+        if "messages" in st.session_state:
+            del st.session_state["messages"]
+            
+    st.write("📂 **History**")
+    st.button("➕ Create new chat", on_click=start_new_chat, use_container_width=True)
+            
+    # Call API get User session_id list
+    sessions_url = SERVER_URL.replace("/chat", "/chat/sessions")
+    headers = {"Authorization": f"Bearer {st.session_state.id_token}"}
+    
+    try:
+        res = requests.get(sessions_url, headers=headers)
+        if res.status_code == 200:
+            sessions = res.json().get("sessions", [])
+            
+            for s_id in sessions:
+                short_id = s_id[:8]
+                
+                btn_type = "primary" if s_id == st.session_state.session_id else "secondary"
+                
+                st.sidebar.button(
+                    f"💬 Chat {short_id}...",
+                    key=f"btn_{s_id}",	# unique
+                    on_click=switch_chat,
+                    args=(s_id,),
+                    use_container_width=True,
+                    type=btn_type
+                )
+    except Exception as e:
+        st.sidebar.error("Load Error: Failed")
+        
+    st.divider()
+    if st.button("🚪Log Out", use_container_width=True):
+        st.session_state.clear()
+        st.rerun()
 
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
 st.title("🤖 Chatbot AI")
